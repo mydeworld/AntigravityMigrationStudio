@@ -1,0 +1,131 @@
+# Antigravity Migration Studio 使用与操作指南
+
+## 一、 系统简介
+
+**Antigravity Migration Studio** 是一款高性能、可视化的异构数据库迁移工作站，专为将 **Oracle / PostgreSQL** 数据库高效迁移至 **PostgreSQL** 而设计。无需安装繁重的 Perl 环境或 ora2pg 依赖，软件内置全套自动化转换引擎与兼容函数库。
+
+---
+
+## 二、 核心功能特性
+
+1. **多源数据库支持**：支持 Oracle（基于 Service Name 或 SID）以及 PostgreSQL 源数据库的扫描与迁移。
+2. **全类型元数据自动转换**：
+   - **数据表 (Tables)**：字段类型智能映射、默认值转换、主键与外键约束迁移。
+   - **视图 (Views)**：语法智能解析与 PostgreSQL 视图转换。
+   - **存储过程与函数 (Procedures & Functions)**：Oracle PL/SQL 语法向 PostgreSQL PL/pgSQL 的深度智能转换。
+   - **序列 (Sequences)**：自动保持起始值、增量及最大/最小值。
+   - **触发器 (Triggers)**：自动生成 PL/pgSQL 触发器函数及对应 `CREATE TRIGGER` 语句。
+   - **索引 (Indexes)**：支持非主键索引迁移，自动剔除与主键约束冲突的重复索引。
+3. **架构前缀自动清洗 (Schema Auto-Cleaning)**：
+   - 自动识别并剥离源数据库中硬编码的 Schema 前缀（例如 `kltewpt.TABLE_NAME`），无缝绑定至目标 PostgreSQL Schema（如 `public`）。
+4. **内置 Oracle 兼容函数库**：
+   - 迁移时自动在目标库生成 `to_number`、`to_char`、`instr` 等兼容函数及文本与数字间的重载运算符（`+`、`-`、`=`、`<>`），确保存储过程无缝运行。
+5. **高性能 Bulk Copy 数据迁移**：
+   - 采用 PostgreSQL 原生 `COPY STDIN (FORMAT CSV)` 机制，支持百万级数据高速批量导入。
+6. **可视化 DDL 预览与在线编辑**：
+   - 允许在迁移前预览转换后的 PostgreSQL 脚本，并支持人工微调，编辑后的代码将自动在迁移中生效。
+7. **完善的失败追踪与调试系统**：
+   - 提供专属失败详情窗口（Failure Details Window），支持错误筛选、定位、明细展示及一键复制错误报告。
+
+---
+
+## 三、 快速启动与脚本说明
+
+根目录下提供两个便利的批处理脚本：
+
+- **`run.bat`**：一键启动应用。优先启动预编译的发布版本（`Publish\MigrationPgSqlApp.exe`），若未编译则自动使用源码启动。
+- **`build.bat`**：一键重新编译并发布应用到 `Publish` 文件夹。
+
+---
+
+## 四、 详细操作步骤
+
+```
+[步骤 1: 数据库连接配置] ➔ [步骤 2: 元数据勾选与脚本预览] ➔ [步骤 3: 迁移选项与一键执行] ➔ [步骤 4: 结果复查与排查]
+```
+
+### 步骤 1：数据库连接配置 (Connections 选项卡)
+
+1. **配置源数据库 (Source Database)**：
+   - 选择源库类型：`Oracle` 或 `PostgreSQL`。
+   - **Oracle 源库**：填写 Host、Port（默认 1521）、Service Name 或 SID（支持 Toggle 切换）、Username、Password 及 Schema（为空则默认当前用户 Schema）。
+   - **PostgreSQL 源库**：填写 Host、Port（默认 5432）、Database Name、Username、Password 及 Source Schema（默认 `public`）。
+   - 点击 **`Test Oracle Connection`** 或 **`Test Source PostgreSQL Connection`** 验证连通性。
+2. **配置目标 PostgreSQL 数据库 (Target Database)**：
+   - 填写目标 Host、Port（默认 5432）、Database Name、Username、Password 及 Target Schema（如 `public`）。
+   - 点击 **`Test PostgreSQL Connection`** 验证连通性。
+3. **加载元数据**：
+   - 两侧连接测试成功后，点击底部的 **`Connect and Load Metadata`** 按钮。系统将扫描源库并自动跳转至元数据导航界面。
+
+---
+
+### 步骤 2：元数据勾选与 DDL 预览修改 (Metadata Navigator 选项卡)
+
+1. **选择迁移对象**：
+   - 左侧树状目录分类列出了扫描到的 Tables、Views、Sequences、Indexes、Procedures & Packages、Triggers。
+   - 可针对各个分类点击 `All` / `None` 批量勾选，或手动选择具体对象。
+2. **预览与手动校对 DDL**：
+   - 点击左侧列表中任意对象，右侧区域将实时显示 **Original Source SQL**（源库原始代码）与 **Converted PostgreSQL DDL**（转换后的 PG 脚本）。
+   - 对于视图、存储过程与触发器，您可以在右侧的 **Converted PostgreSQL DDL (Editable)** 文本框中**直接人工修改 SQL 语法**。修改后的代码将直接应用到实际迁移中。
+
+---
+
+### 步骤 3：配置迁移选项与执行 (Migration Execution 选项卡)
+
+1. **勾选迁移模块 (Migration Options)**：
+   - `Migrate Table Structures / Views`：迁移数据表结构及视图。
+   - `Migrate Database Sequences`：迁移序列。
+   - `Migrate Non-PK Indexes`：迁移非主键索引。
+   - `Migrate Table Data (Bulk Copy)`：迁移表数据。
+     - `Truncate Target Tables First`：导入前先清空目标表数据（开启强力清空）。
+   - `Migrate Procedures, Functions & Packages`：迁移存储过程、函数与包。
+   - `Migrate Database Triggers`：迁移数据库触发器。
+2. **开始迁移**：
+   - 点击 **`Start Migration`** 按钮。
+   - 界面将显示实时进度条、成功/失败计数器、正迁移的对象列表状态及日志终端。
+
+---
+
+### 步骤 4：迁移结果复查与失败排查 (Failure Details)
+
+1. **查看迁移结果**：
+   - 迁移完成后，日志终端会输出总用时与完成摘要。同时在根目录下会自动生成日志文件：
+     - `migration.log`：完整执行日志。
+     - `failed_objects.log`：失败对象摘要日志。
+     - `debug_failed_codes.txt`：失败对象的转换前后代码对比调试日志。
+2. **使用失败详情弹窗**：
+   - 若有对象迁移失败，可点击界面上的 **`Show Failures`** 按钮打开 **Migration Failure Details** 弹窗。
+   - 在弹窗中可搜索对象名称或错误关键字，查看精准错误代码及详细失败原因，并可点击 **`Copy Error Info`** 一键复制错误信息用于排查。
+
+---
+
+## 五、 高级语法转换规则参考
+
+| 语法类型 | Oracle 原始语法 | 自动转换后的 PostgreSQL 语法 |
+| :--- | :--- | :--- |
+| **数据类型** | `VARCHAR2(N)` / `NVARCHAR2(N)` | `varchar(N)` |
+| **数据类型** | `NUMBER(P,S)` / `NUMBER` | `numeric(P,S)` / `integer` / `bigint` |
+| **数据类型** | `CLOB` / `BLOB` | `text` / `bytea` |
+| **数据类型** | `DATE` / `TIMESTAMP` | `timestamp` |
+| **数据类型** | `SYS_REFCURSOR` | `refcursor` |
+| **空值判断** | `NVL(a, b)` | `COALESCE(a, b)` |
+| **位置查找** | `INSTR(str, substr)` | `POSITION(substr IN str)` / 内置 `instr()` |
+| **字符串截取**| `SUBSTR(str, pos, len)` | `SUBSTRING(str FROM pos FOR len)` |
+| **唯一标识** | `SYS_GUID()` | `upper(replace(gen_random_uuid()::text, '-', ''))` |
+| **日志输出** | `DBMS_OUTPUT.PUT_LINE(msg)` | `RAISE NOTICE '%', msg` |
+| **参数语法** | `IN OUT` | `INOUT` |
+| **伪表去除** | `SELECT ... FROM DUAL` | `SELECT ...` |
+
+---
+
+## 六、 常见问题解答 (FAQ)
+
+1. **Q: 为什么提示 `3F000: schema "xxx" does not exist`？**
+   - **A**: 这是因为 Oracle 源码中硬编码了源 Schema 名称。最新版本的转换引擎已加入 `CleanSchemaPrefixes` 机制，会自动将类似 `kltewpt.object_name` 替换为目标 Schema 或剥离，重新执行迁移即可解决。
+2. **Q: 为什么提示 `2BP01: cannot drop index ... because constraint ... requires it`？**
+   - **A**: 在 PostgreSQL 中，主键约束会自动创建底层的唯一索引。最新版本已自动识别并跳过主键约束背书的索引，不会再触发此报错。
+3. **Q: 程序修改后双击打不开怎么办？**
+   - **A**: 请运行根目录下的 `build.bat` 重新编译并发布，或者直接双击运行 `run.bat`。
+
+---
+*Antigravity Migration Studio Team*

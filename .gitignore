@@ -1,0 +1,41 @@
+# =========================================================================
+# Antigravity Migration Studio - Git Ignore Configuration
+# =========================================================================
+
+# 1. 隐私与敏感账号数据 (Database Credentials & Private Configs)
+db_config.json
+**/db_config.json
+appsettings.Local.json
+appsettings.Development.json
+*.user.json
+
+# 2. 运行日志与调试排查文件 (Logs & Debug Artifacts)
+*.log
+migration.log
+failed_objects.log
+debug_failed_codes.txt
+*.rar
+*.zip
+*.7z
+
+# 3. 编译输出与发布文件 (Build & Publish Artifacts)
+[Bb]in/
+[Oo]bj/
+Publish/
+.dotnet_home/
+
+# 4. IDE 配置文件 (IDE & Environment Settings)
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosv
+*.sln.docstates
+
+# 5. 系统临时文件 (OS & Temp Files)
+[Tt]emp/
+[Tt]mp/
+Thumbs.db
+ehthumbs.db
+Desktop.ini
