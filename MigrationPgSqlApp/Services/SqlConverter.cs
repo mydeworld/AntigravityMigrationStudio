@@ -60,7 +60,21 @@ namespace MigrationPgSqlApp.Services
 
         public string ConvertSqlText(string sql)
         {
+            return ConvertSqlText(sql, null);
+        }
+
+        public string ConvertSqlText(string sql, ISet<string> extraNonVarcharNames)
+        {
             if (string.IsNullOrEmpty(sql)) return string.Empty;
+
+            var nonVarcharNames = ExtractNonVarcharNames(sql);
+            if (extraNonVarcharNames != null)
+            {
+                foreach (var name in extraNonVarcharNames)
+                {
+                    nonVarcharNames.Add(name);
+                }
+            }
 
             // 0. Replace full-width Chinese commas with half-width English commas
             sql = sql.Replace("，", ",");
@@ -128,16 +142,57 @@ namespace MigrationPgSqlApp.Services
 
             // 11. Convert A IS NULL / A IS NOT NULL to A IS NULL OR A = '' / A IS NOT NULL AND A <> ''
             // Skip matches inside single-quoted string literals
+            // Note: If parameter/variable is NOT a varchar type (e.g. integer, numeric, date, timestamp, refcursor, boolean, etc.),
+            // compare with empty string '' will cause PostgreSQL syntax error. So only convert to (expr IS NULL) / (expr IS NOT NULL).
             sql = Regex.Replace(sql, @"'[^']*'|(\b(?<expr>[a-zA-Z0-9_.]+(?:\([^)]*\))?)\s+IS\s+NOT\s+NULL\b)", m => {
                 if (m.Value.StartsWith("'")) return m.Value;
                 string expr = m.Groups["expr"].Value;
+                if (IsNonVarcharExpr(expr, nonVarcharNames))
+                {
+                    return $"({expr} IS NOT NULL)";
+                }
                 return $"({expr} IS NOT NULL AND {expr} <> '')";
             }, RegexOptions.IgnoreCase);
 
             sql = Regex.Replace(sql, @"'[^']*'|(\b(?<expr>[a-zA-Z0-9_.]+(?:\([^)]*\))?)\s+IS\s+NULL\b)", m => {
                 if (m.Value.StartsWith("'")) return m.Value;
                 string expr = m.Groups["expr"].Value;
+                if (IsNonVarcharExpr(expr, nonVarcharNames))
+                {
+                    return $"({expr} IS NULL)";
+                }
                 return $"({expr} IS NULL OR {expr} = '')";
+            }, RegexOptions.IgnoreCase);
+
+            // Clean up any existing (expr IS NULL OR expr = '') or (expr IS NOT NULL AND expr <> '') for non-varchar expressions
+            sql = Regex.Replace(sql, @"'[^']*'|(\(\s*(?<expr>[a-zA-Z0-9_.]+)\s+IS\s+NULL\s+OR\s+\k<expr>\s*=\s*''\s*\))", m => {
+                if (m.Value.StartsWith("'")) return m.Value;
+                string expr = m.Groups["expr"].Value;
+                if (IsNonVarcharExpr(expr, nonVarcharNames))
+                {
+                    return $"({expr} IS NULL)";
+                }
+                return m.Value;
+            }, RegexOptions.IgnoreCase);
+
+            sql = Regex.Replace(sql, @"'[^']*'|(\(\s*(?<expr>[a-zA-Z0-9_.]+)\s*=\s*''\s+OR\s+\k<expr>\s+IS\s+NULL\s*\))", m => {
+                if (m.Value.StartsWith("'")) return m.Value;
+                string expr = m.Groups["expr"].Value;
+                if (IsNonVarcharExpr(expr, nonVarcharNames))
+                {
+                    return $"({expr} IS NULL)";
+                }
+                return m.Value;
+            }, RegexOptions.IgnoreCase);
+
+            sql = Regex.Replace(sql, @"'[^']*'|(\(\s*(?<expr>[a-zA-Z0-9_.]+)\s+IS\s+NOT\s+NULL\s+AND\s+\k<expr>\s*<>\s*''\s*\))", m => {
+                if (m.Value.StartsWith("'")) return m.Value;
+                string expr = m.Groups["expr"].Value;
+                if (IsNonVarcharExpr(expr, nonVarcharNames))
+                {
+                    return $"({expr} IS NOT NULL)";
+                }
+                return m.Value;
             }, RegexOptions.IgnoreCase);
 
             // 12. Convert LIKE patterns with concatenations to use COALESCE to prevent NULL comparisons returning empty datasets in PG
@@ -1248,6 +1303,155 @@ namespace MigrationPgSqlApp.Services
                 }
             }
             return -1;
+        }
+
+        public HashSet<string> ExtractNonVarcharNames(string sql)
+        {
+            var nonVarcharNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var varcharNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (string.IsNullOrEmpty(sql)) return nonVarcharNames;
+
+            // 1. Match procedure / function parameter declarations
+            var procFuncMatches = Regex.Matches(sql, @"\b(?:PROCEDURE|FUNCTION)\s+(?:""?\w+""?\.)?""?(?<name>\w+)""?\s*\((?<params>[^)]+)\)", RegexOptions.IgnoreCase);
+            foreach (Match m in procFuncMatches)
+            {
+                string paramsStr = m.Groups["params"].Value;
+                var parts = SplitSqlArgs(paramsStr);
+                foreach (var part in parts)
+                {
+                    string p = part.Trim();
+                    p = Regex.Replace(p, @"/\*.*?\*/", "", RegexOptions.Singleline);
+                    p = Regex.Replace(p, @"--.*$", "", RegexOptions.Multiline).Trim();
+                    if (string.IsNullOrEmpty(p)) continue;
+
+                    var pMatch = Regex.Match(p, @"^(\w+)\s+(?:(IN\s+OUT|INOUT|IN|OUT)\s+)?([\w%_.]+)", RegexOptions.IgnoreCase);
+                    if (pMatch.Success)
+                    {
+                        string pName = pMatch.Groups[1].Value;
+                        string pType = pMatch.Groups[3].Value;
+
+                        if (IsVarcharType(pType))
+                        {
+                            varcharNames.Add(pName);
+                        }
+                        else
+                        {
+                            nonVarcharNames.Add(pName);
+                        }
+                    }
+                }
+            }
+
+            // 2. Match local variable declarations in PL/SQL blocks
+            var varMatches = Regex.Matches(sql, @"\b(?<varName>[a-zA-Z_]\w*)\s+(?<varType>[a-zA-Z_][a-zA-Z0-9_%]*)(?:\s*\([^)]*\))?\s*(?:NOT\s+NULL)?\s*(?::=|DEFAULT|;)", RegexOptions.IgnoreCase);
+            var reservedKeywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "PROCEDURE", "FUNCTION", "BEGIN", "END", "IF", "THEN", "ELSE", "ELSIF",
+                "LOOP", "WHILE", "FOR", "SELECT", "INSERT", "UPDATE", "DELETE", "RETURN", "RAISE",
+                "DECLARE", "EXCEPTION", "WHEN", "OR", "AND", "NOT", "IN", "IS", "AS", "INTO", "FROM", "WHERE", "CALL"
+            };
+
+            foreach (Match m in varMatches)
+            {
+                string varName = m.Groups["varName"].Value;
+                string varType = m.Groups["varType"].Value;
+
+                if (reservedKeywords.Contains(varName) || reservedKeywords.Contains(varType))
+                    continue;
+
+                if (IsVarcharType(varType))
+                {
+                    varcharNames.Add(varName);
+                }
+                else
+                {
+                    if (!varcharNames.Contains(varName))
+                    {
+                        nonVarcharNames.Add(varName);
+                    }
+                }
+            }
+
+            return nonVarcharNames;
+        }
+
+        private bool IsVarcharType(string typeStr)
+        {
+            if (string.IsNullOrWhiteSpace(typeStr)) return false;
+            string t = typeStr.Trim().ToUpper();
+            int parenIdx = t.IndexOf('(');
+            if (parenIdx > 0) t = t.Substring(0, parenIdx).Trim();
+
+            if (t.EndsWith("%TYPE"))
+            {
+                string baseName = t.Substring(0, t.Length - 5).Trim();
+                if (baseName.EndsWith("_ID") || baseName.EndsWith("ID") || baseName.EndsWith("_NO") || 
+                    baseName.EndsWith("_NUM") || baseName.EndsWith("_DATE") || baseName.EndsWith("_TIME") ||
+                    baseName.EndsWith("_AMT") || baseName.EndsWith("_AMOUNT") || baseName.EndsWith("_QTY") ||
+                    baseName.EndsWith("_COUNT") || baseName.EndsWith("_SEQ") || baseName.EndsWith("_PRICE"))
+                {
+                    return false;
+                }
+            }
+
+            return t == "VARCHAR" || t == "VARCHAR2" || 
+                   t == "NVARCHAR" || t == "NVARCHAR2" || 
+                   t == "CHAR" || t == "NCHAR" || 
+                   t == "TEXT" || t == "CLOB" || t == "NCLOB" ||
+                   t == "STRING" || t == "CHARACTER" || t == "LONG";
+        }
+
+        private bool IsNonVarcharExpr(string expr, ISet<string> nonVarcharNames)
+        {
+            if (string.IsNullOrWhiteSpace(expr)) return false;
+
+            string cleaned = expr.Trim();
+            while (cleaned.StartsWith("(") && cleaned.EndsWith(")") && FindClosingParenthesis(cleaned, 0) == cleaned.Length - 1)
+            {
+                cleaned = cleaned.Substring(1, cleaned.Length - 2).Trim();
+            }
+
+            if (nonVarcharNames != null && nonVarcharNames.Contains(cleaned))
+            {
+                return true;
+            }
+
+            int dotIdx = cleaned.LastIndexOf('.');
+            if (dotIdx >= 0 && dotIdx < cleaned.Length - 1)
+            {
+                string memberName = cleaned.Substring(dotIdx + 1);
+                if (nonVarcharNames != null && nonVarcharNames.Contains(memberName))
+                {
+                    return true;
+                }
+            }
+
+            if (Regex.IsMatch(cleaned, @"^-?\d+(?:\.\d+)?$"))
+            {
+                return true;
+            }
+
+            string upperExpr = cleaned.ToUpper();
+            if (upperExpr.StartsWith("TO_NUMBER") || upperExpr.StartsWith("COUNT") ||
+                upperExpr.StartsWith("SUM") || upperExpr.StartsWith("AVG") ||
+                upperExpr.StartsWith("MAX") || upperExpr.StartsWith("MIN") ||
+                upperExpr.StartsWith("LENGTH") || upperExpr.StartsWith("POSITION") ||
+                upperExpr.StartsWith("ROUND") || upperExpr.StartsWith("TRUNC") ||
+                upperExpr.StartsWith("ABS"))
+            {
+                return true;
+            }
+
+            if (upperExpr.EndsWith("::INTEGER") || upperExpr.EndsWith("::NUMERIC") ||
+                upperExpr.EndsWith("::BIGINT") || upperExpr.EndsWith("::SMALLINT") ||
+                upperExpr.EndsWith("::TIMESTAMP") || upperExpr.EndsWith("::DATE") ||
+                upperExpr.EndsWith("::REFCURSOR") || upperExpr.EndsWith("::BOOLEAN"))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }
