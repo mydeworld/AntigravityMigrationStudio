@@ -85,7 +85,22 @@ namespace MigrationPgSqlApp.ViewModels
         public bool OraIsSid
         {
             get => _oraIsSid;
-            set => SetProperty(ref _oraIsSid, value);
+            set
+            {
+                if (SetProperty(ref _oraIsSid, value))
+                {
+                    OnPropertyChanged(nameof(OraIsService));
+                }
+            }
+        }
+
+        public bool OraIsService
+        {
+            get => !_oraIsSid;
+            set
+            {
+                if (value) OraIsSid = false;
+            }
         }
 
         private string _oraUser = "SYSTEM";

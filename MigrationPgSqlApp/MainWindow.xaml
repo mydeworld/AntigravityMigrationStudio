@@ -20,6 +20,95 @@
         <sys:Boolean x:Key="True">True</sys:Boolean>
         <sys:Boolean x:Key="False">False</sys:Boolean>
         
+        <!-- Modern Styled Secondary/Outline Button -->
+        <Style x:Key="ModernSecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#222234"/>
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="BorderBrush" Value="#3B3B54"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Padding" Value="14 0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2E2E48"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#5A5A80"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#181826"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Styled Primary/Accent Button -->
+        <Style x:Key="ModernAccentButton" TargetType="Button">
+            <Setter Property="Background" Value="#4F46E5"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="46"/>
+            <Setter Property="Padding" Value="20 0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#4338CA"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#3730A3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Modern Danger Button -->
+        <Style x:Key="ModernDangerButton" TargetType="Button">
+            <Setter Property="Background" Value="#DC2626"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="12 0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#B91C1C"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#991B1B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Custom text box style for dark premium code feel -->
         <Style x:Key="CodeTextBoxStyle" TargetType="TextBox">
             <Setter Property="Background" Value="#0F0F16" />
@@ -51,22 +140,33 @@
                 
                 <StackPanel Orientation="Horizontal">
                     <iconPacks:PackIconMaterial Kind="DatabaseImport" Width="26" Height="26" Foreground="{DynamicResource MahApps.Brushes.Accent}" VerticalAlignment="Center" Margin="0 0 10 0"/>
-                    <TextBlock Text="Antigravity Migration Studio" FontSize="18" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                    <TextBlock Text="Oracle / PostgreSQL ➔ PostgreSQL" FontSize="12" Foreground="#8A8A9F" Margin="15 0 0 0" VerticalAlignment="Center" Opacity="0.8"/>
+                    <TextBlock Text="{Binding Lang.AppTitle}" FontSize="18" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Lang.AppSubtitle}" FontSize="12" Foreground="#8A8A9F" Margin="15 0 0 0" VerticalAlignment="Center" Opacity="0.8"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Language Selector Dropdown -->
+                    <Border Background="#222230" CornerRadius="4" Padding="6 2" Margin="0 0 12 0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="Translate" Width="14" Height="14" Foreground="#A9A9C9" VerticalAlignment="Center" Margin="0 0 5 0"/>
+                            <ComboBox SelectedIndex="{Binding Lang.SelectedLanguageIndex, Mode=TwoWay}" Width="100" Height="24" FontSize="11" Background="Transparent" Foreground="White" BorderThickness="0">
+                                <ComboBoxItem Content="简体中文"/>
+                                <ComboBoxItem Content="English"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Status Indicators -->
                     <Border Background="#222230" CornerRadius="4" Padding="8 4" Margin="5 0">
                         <StackPanel Orientation="Horizontal">
                             <Ellipse Width="8" Height="8" Fill="{Binding ConnectionVM.IsSourceSuccess, Converter={StaticResource BoolToVis}, FallbackValue=Red}" Margin="0 0 5 0"/>
-                            <TextBlock Text="Source DB" FontSize="11" Foreground="#A9A9C9"/>
+                            <TextBlock Text="{Binding Lang.SourceDbHeader}" FontSize="11" Foreground="#A9A9C9"/>
                         </StackPanel>
                     </Border>
                     <Border Background="#222230" CornerRadius="4" Padding="8 4" Margin="5 0">
                         <StackPanel Orientation="Horizontal">
                             <Ellipse Width="8" Height="8" Fill="{Binding ConnectionVM.IsPgSuccess, Converter={StaticResource BoolToVis}, FallbackValue=Red}" Margin="0 0 5 0"/>
-                            <TextBlock Text="Target PostgreSQL" FontSize="11" Foreground="#A9A9C9"/>
+                            <TextBlock Text="{Binding Lang.TargetDbHeader}" FontSize="11" Foreground="#A9A9C9"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -77,7 +177,7 @@
         <mah:MetroAnimatedSingleRowTabControl Grid.Row="1" SelectedIndex="{Binding ActiveTabIndex}" TabStripPlacement="Top" Background="#14141E">
             
             <!-- Tab 1: Database Connections -->
-            <TabItem Header="Connections">
+            <TabItem Header="{Binding Lang.Tab1Header}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid Margin="20">
                         <Grid.RowDefinitions>
@@ -99,7 +199,7 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <iconPacks:PackIconMaterial Kind="Database" Width="22" Height="22" Foreground="#FF8C00" VerticalAlignment="Center" Margin="0 0 8 0"/>
-                                        <TextBlock Text="Source Database" FontSize="16" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Lang.SourceDbPanelHeader}" FontSize="16" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                                     </StackPanel>
 
                                     <!-- Source DB Type Selector -->
@@ -123,20 +223,28 @@
                                     </Grid>
 
                                     <Grid Margin="0 5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="2*"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBox Text="{Binding ConnectionVM.OraServiceOrSid, UpdateSourceTrigger=PropertyChanged}" 
-                                                 mah:TextBoxHelper.Watermark="Service Name / SID" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 0 5 0"/>
-                                        <mah:ToggleSwitch IsOn="{Binding ConnectionVM.OraIsSid}" OnContent="SID" OffContent="Service" VerticalAlignment="Center"/>
-                                    </Grid>
+                                         <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="*"/>
+                                             <ColumnDefinition Width="Auto"/>
+                                         </Grid.ColumnDefinitions>
+                                         <TextBox Text="{Binding ConnectionVM.OraServiceOrSid, UpdateSourceTrigger=PropertyChanged}" 
+                                                  mah:TextBoxHelper.Watermark="Service Name / SID" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 0 10 0" VerticalAlignment="Center"/>
+                                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="5 0 0 0">
+                                             <RadioButton Content="Service" IsChecked="{Binding ConnectionVM.OraIsService, Mode=TwoWay}" Foreground="White" FontSize="11" Margin="0 0 8 0" VerticalAlignment="Center"/>
+                                             <RadioButton Content="SID" IsChecked="{Binding ConnectionVM.OraIsSid, Mode=TwoWay}" Foreground="White" FontSize="11" VerticalAlignment="Center"/>
+                                         </StackPanel>
+                                     </Grid>
 
-                                    <TextBox Text="{Binding ConnectionVM.OraUser, UpdateSourceTrigger=PropertyChanged}" mah:TextBoxHelper.Watermark="Username" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 5"/>
-                                    <PasswordBox Name="OraPasswordBox" mah:TextBoxHelper.Watermark="Password" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 5" PasswordChanged="OraPasswordChanged"/>
-                                    <TextBox Text="{Binding ConnectionVM.OraSchema, UpdateSourceTrigger=PropertyChanged}" mah:TextBoxHelper.Watermark="Schema (Leave blank for default user schema)" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 5"/>
+                                     <TextBox Text="{Binding ConnectionVM.OraUser, UpdateSourceTrigger=PropertyChanged}" mah:TextBoxHelper.Watermark="Username" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 5"/>
+                                     <PasswordBox Name="OraPasswordBox" mah:TextBoxHelper.Watermark="Password" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 5" PasswordChanged="OraPasswordChanged"/>
+                                     <TextBox Text="{Binding ConnectionVM.OraSchema, UpdateSourceTrigger=PropertyChanged}" mah:TextBoxHelper.Watermark="Schema (Leave blank for default user schema)" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 5"/>
 
-                                    <Button Command="{Binding ConnectionVM.TestOracleCommand}" Content="Test Oracle Connection" Style="{DynamicResource MahApps.Styles.Button.Flat}" Margin="0 15 0 5" BorderBrush="#2E2E42"/>
+                                     <Button Command="{Binding ConnectionVM.TestOracleCommand}" Style="{StaticResource ModernSecondaryButton}" Margin="0 15 0 5">
+                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                             <iconPacks:PackIconMaterial Kind="DatabaseCheck" Width="16" Height="16" Margin="0 0 8 0" VerticalAlignment="Center" Foreground="#FF9800"/>
+                                             <TextBlock Text="{Binding Lang.TestOraBtn}" VerticalAlignment="Center"/>
+                                         </StackPanel>
+                                     </Button>
                                     <TextBlock Text="{Binding ConnectionVM.OraStatus}" FontSize="11" Foreground="#FFCC00" TextWrapping="Wrap" Margin="0 5 0 0" HorizontalAlignment="Center"/>
                                 </StackPanel>
 
@@ -156,7 +264,12 @@
                                     <PasswordBox Name="SrcPgPasswordBox" mah:TextBoxHelper.Watermark="Password" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 5" PasswordChanged="SrcPgPasswordChanged"/>
                                     <TextBox Text="{Binding ConnectionVM.SrcPgSchema, UpdateSourceTrigger=PropertyChanged}" mah:TextBoxHelper.Watermark="Source Schema (e.g. public)" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 5"/>
 
-                                    <Button Command="{Binding ConnectionVM.TestSrcPgCommand}" Content="Test Source PostgreSQL Connection" Style="{DynamicResource MahApps.Styles.Button.Flat}" Margin="0 15 0 5" BorderBrush="#2E2E42"/>
+                                    <Button Command="{Binding ConnectionVM.TestSrcPgCommand}" Style="{StaticResource ModernSecondaryButton}" Margin="0 15 0 5">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <iconPacks:PackIconMaterial Kind="DatabaseCheck" Width="16" Height="16" Margin="0 0 8 0" VerticalAlignment="Center" Foreground="#3B82F6"/>
+                                            <TextBlock Text="{Binding Lang.TestSrcPgBtn}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
                                     <TextBlock Text="{Binding ConnectionVM.SrcPgStatus}" FontSize="11" Foreground="#FFCC00" TextWrapping="Wrap" Margin="0 5 0 0" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </StackPanel>
@@ -167,7 +280,7 @@
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0 0 0 20">
                                     <iconPacks:PackIconMaterial Kind="Database" Width="22" Height="22" Foreground="#4169E1" VerticalAlignment="Center" Margin="0 0 8 0"/>
-                                    <TextBlock Text="PostgreSQL Target Database" FontSize="16" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Lang.TargetDbPanelHeader}" FontSize="16" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                                 </StackPanel>
 
                                 <Grid Margin="0 5">
@@ -184,16 +297,21 @@
                                 <PasswordBox Name="PgPasswordBox" mah:TextBoxHelper.Watermark="Password" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 5" PasswordChanged="PgPasswordChanged"/>
                                 <TextBox Text="{Binding ConnectionVM.PgSchema, UpdateSourceTrigger=PropertyChanged}" mah:TextBoxHelper.Watermark="Target Schema" mah:TextBoxHelper.UseFloatingWatermark="True" Margin="0 5"/>
 
-                                <Button Command="{Binding ConnectionVM.TestPgCommand}" Content="Test PostgreSQL Connection" Style="{DynamicResource MahApps.Styles.Button.Flat}" Margin="0 15 0 5" BorderBrush="#2E2E42"/>
+                                <Button Command="{Binding ConnectionVM.TestPgCommand}" Style="{StaticResource ModernSecondaryButton}" Margin="0 15 0 5">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <iconPacks:PackIconMaterial Kind="DatabaseCheck" Width="16" Height="16" Margin="0 0 8 0" VerticalAlignment="Center" Foreground="#3B82F6"/>
+                                        <TextBlock Text="{Binding Lang.TestPgBtn}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
                                 <TextBlock Text="{Binding ConnectionVM.PgStatus}" FontSize="11" Foreground="#FFCC00" TextWrapping="Wrap" Margin="0 5 0 0" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
                         <!-- Load Metadata Button -->
-                        <Button Grid.Row="1" Grid.ColumnSpan="2" Command="{Binding LoadMetadataCommand}" Style="{DynamicResource MahApps.Styles.Button.Flat}" Background="{DynamicResource MahApps.Brushes.Accent}" Foreground="White" Margin="10 15" Height="50" FontSize="14" FontWeight="SemiBold">
-                            <StackPanel Orientation="Horizontal">
+                        <Button Grid.Row="1" Grid.ColumnSpan="2" Command="{Binding LoadMetadataCommand}" Style="{StaticResource ModernAccentButton}" Margin="10 15">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <iconPacks:PackIconMaterial Kind="DatabaseSync" Width="20" Height="20" Margin="0 0 8 0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Connect and Load Metadata" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Lang.ConnectLoadBtn}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </Grid>
@@ -201,7 +319,7 @@
             </TabItem>
 
             <!-- Tab 2: Object Navigator & Code Preview -->
-            <TabItem Header="Metadata Navigator">
+            <TabItem Header="{Binding Lang.Tab2Header}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="320"/>
@@ -218,18 +336,18 @@
                             </Grid.RowDefinitions>
 
                             <Border Grid.Row="0" Background="#1C1C2E" Padding="10 8" BorderBrush="#252538" BorderThickness="0 0 0 1">
-                                <TextBlock Text="Database Objects Checklist" Foreground="#A0A0C0" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Lang.ChecklistHeader}" Foreground="#A0A0C0" FontSize="12" FontWeight="SemiBold"/>
                             </Border>
 
                             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                                 <StackPanel Margin="10">
                                     
                                     <!-- Tables Category -->
-                                    <Expander Header="Tables" IsExpanded="True" Foreground="White" BorderBrush="#252538" Margin="0 0 0 8">
+                                    <Expander Header="{Binding Lang.TablesHeader}" IsExpanded="True" Foreground="White" BorderBrush="#252538" Margin="0 0 0 8">
                                         <StackPanel Margin="5 0 0 0">
                                             <StackPanel Orientation="Horizontal" Margin="0 5">
-                                                <Button Content="All" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllTablesCommand}" CommandParameter="{StaticResource True}"/>
-                                                <Button Content="None" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllTablesCommand}" CommandParameter="{StaticResource False}"/>
+                                                <Button Content="{Binding Lang.AllBtn}" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllTablesCommand}" CommandParameter="{StaticResource True}"/>
+                                                <Button Content="{Binding Lang.NoneBtn}" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllTablesCommand}" CommandParameter="{StaticResource False}"/>
                                             </StackPanel>
                                             
                                             <ListBox ItemsSource="{Binding SchemaTreeVM.Tables}" SelectedItem="{Binding ObjectPreviewVM.SelectedItem}" Background="Transparent" BorderThickness="0" Margin="0 5">
@@ -255,11 +373,11 @@
                                     </Expander>
 
                                     <!-- Views Category -->
-                                    <Expander Header="Views" IsExpanded="False" Foreground="White" BorderBrush="#252538" Margin="0 0 0 8">
+                                    <Expander Header="{Binding Lang.ViewsHeader}" IsExpanded="False" Foreground="White" BorderBrush="#252538" Margin="0 0 0 8">
                                         <StackPanel Margin="5 0 0 0">
                                             <StackPanel Orientation="Horizontal" Margin="0 5">
-                                                <Button Content="All" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllViewsCommand}" CommandParameter="{StaticResource True}"/>
-                                                <Button Content="None" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllViewsCommand}" CommandParameter="{StaticResource False}"/>
+                                                <Button Content="{Binding Lang.AllBtn}" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllViewsCommand}" CommandParameter="{StaticResource True}"/>
+                                                <Button Content="{Binding Lang.NoneBtn}" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllViewsCommand}" CommandParameter="{StaticResource False}"/>
                                             </StackPanel>
                                             
                                             <ListBox ItemsSource="{Binding SchemaTreeVM.Views}" SelectedItem="{Binding ObjectPreviewVM.SelectedItem}" Background="Transparent" BorderThickness="0" Margin="0 5">
@@ -283,11 +401,11 @@
                                     </Expander>
 
                                     <!-- Sequences Category -->
-                                    <Expander Header="Sequences" IsExpanded="False" Foreground="White" BorderBrush="#252538" Margin="0 0 0 8">
+                                    <Expander Header="{Binding Lang.SequencesHeader}" IsExpanded="False" Foreground="White" BorderBrush="#252538" Margin="0 0 0 8">
                                         <StackPanel Margin="5 0 0 0">
                                             <StackPanel Orientation="Horizontal" Margin="0 5">
-                                                <Button Content="All" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllSequencesCommand}" CommandParameter="{StaticResource True}"/>
-                                                <Button Content="None" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllSequencesCommand}" CommandParameter="{StaticResource False}"/>
+                                                <Button Content="{Binding Lang.AllBtn}" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllSequencesCommand}" CommandParameter="{StaticResource True}"/>
+                                                <Button Content="{Binding Lang.NoneBtn}" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllSequencesCommand}" CommandParameter="{StaticResource False}"/>
                                             </StackPanel>
                                             
                                             <ListBox ItemsSource="{Binding SchemaTreeVM.Sequences}" SelectedItem="{Binding ObjectPreviewVM.SelectedItem}" Background="Transparent" BorderThickness="0" Margin="0 5">
@@ -311,11 +429,11 @@
                                     </Expander>
 
                                     <!-- Indexes Category -->
-                                    <Expander Header="Indexes" IsExpanded="False" Foreground="White" BorderBrush="#252538" Margin="0 0 0 8">
+                                    <Expander Header="{Binding Lang.IndexesHeader}" IsExpanded="False" Foreground="White" BorderBrush="#252538" Margin="0 0 0 8">
                                         <StackPanel Margin="5 0 0 0">
                                             <StackPanel Orientation="Horizontal" Margin="0 5">
-                                                <Button Content="All" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllIndexesCommand}" CommandParameter="{StaticResource True}"/>
-                                                <Button Content="None" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllIndexesCommand}" CommandParameter="{StaticResource False}"/>
+                                                <Button Content="{Binding Lang.AllBtn}" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllIndexesCommand}" CommandParameter="{StaticResource True}"/>
+                                                <Button Content="{Binding Lang.NoneBtn}" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllIndexesCommand}" CommandParameter="{StaticResource False}"/>
                                             </StackPanel>
                                             
                                             <ListBox ItemsSource="{Binding SchemaTreeVM.Indexes}" SelectedItem="{Binding ObjectPreviewVM.SelectedItem}" Background="Transparent" BorderThickness="0" Margin="0 5">
@@ -339,11 +457,11 @@
                                     </Expander>
 
                                     <!-- Procedures/Functions/Packages Category -->
-                                    <Expander Header="Procedures &amp; Packages" IsExpanded="False" Foreground="White" BorderBrush="#252538" Margin="0 0 0 8">
+                                    <Expander Header="{Binding Lang.ProceduresHeader}" IsExpanded="False" Foreground="White" BorderBrush="#252538" Margin="0 0 0 8">
                                         <StackPanel Margin="5 0 0 0">
                                             <StackPanel Orientation="Horizontal" Margin="0 5">
-                                                <Button Content="All" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllProceduresCommand}" CommandParameter="{StaticResource True}"/>
-                                                <Button Content="None" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllProceduresCommand}" CommandParameter="{StaticResource False}"/>
+                                                <Button Content="{Binding Lang.AllBtn}" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllProceduresCommand}" CommandParameter="{StaticResource True}"/>
+                                                <Button Content="{Binding Lang.NoneBtn}" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllProceduresCommand}" CommandParameter="{StaticResource False}"/>
                                             </StackPanel>
                                             
                                             <ListBox ItemsSource="{Binding SchemaTreeVM.Procedures}" SelectedItem="{Binding ObjectPreviewVM.SelectedItem}" Background="Transparent" BorderThickness="0" Margin="0 5">
@@ -367,11 +485,11 @@
                                     </Expander>
 
                                     <!-- Triggers Category -->
-                                    <Expander Header="Triggers" IsExpanded="False" Foreground="White" BorderBrush="#252538">
+                                    <Expander Header="{Binding Lang.TriggersHeader}" IsExpanded="False" Foreground="White" BorderBrush="#252538">
                                         <StackPanel Margin="5 0 0 0">
                                             <StackPanel Orientation="Horizontal" Margin="0 5">
-                                                <Button Content="All" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllTriggersCommand}" CommandParameter="{StaticResource True}"/>
-                                                <Button Content="None" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllTriggersCommand}" CommandParameter="{StaticResource False}"/>
+                                                <Button Content="{Binding Lang.AllBtn}" Padding="6 2" FontSize="10" Command="{Binding SchemaTreeVM.ToggleAllTriggersCommand}" CommandParameter="{StaticResource True}"/>
+                                                <Button Content="{Binding Lang.NoneBtn}" Padding="6 2" FontSize="10" Margin="5 0 0 0" Command="{Binding SchemaTreeVM.ToggleAllTriggersCommand}" CommandParameter="{StaticResource False}"/>
                                             </StackPanel>
                                             
                                             <ListBox ItemsSource="{Binding SchemaTreeVM.Triggers}" SelectedItem="{Binding ObjectPreviewVM.SelectedItem}" Background="Transparent" BorderThickness="0" Margin="0 5">
@@ -418,7 +536,7 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <iconPacks:PackIconMaterial Kind="CodeTags" Width="18" Height="18" Foreground="{DynamicResource MahApps.Brushes.Accent}" Margin="0 0 8 0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Converted Schema DDL &amp; Source Code" FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Lang.ConvertedCodeHeader}" FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                                     <TextBlock Text="{Binding ObjectPreviewVM.SelectedItem.Name, StringFormat=' - \{0\}'}" FontSize="14" Foreground="#FFCC00" VerticalAlignment="Center" FontWeight="SemiBold"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -447,7 +565,7 @@
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
                                         <Border Background="#1C1C2E" Padding="10 5" CornerRadius="4 4 0 0">
-                                            <TextBlock Text="Column Mapping Preview" FontSize="11" Foreground="#A9A9B9" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Lang.ColumnMappingHeader}" FontSize="11" Foreground="#A9A9B9" FontWeight="SemiBold"/>
                                         </Border>
                                         <DataGrid Grid.Row="1" ItemsSource="{Binding ObjectPreviewVM.SelectedTable.Columns}" AutoGenerateColumns="False" 
                                                   CanUserAddRows="False" GridLinesVisibility="Horizontal" HeadersVisibility="Column" 
@@ -476,7 +594,7 @@
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
                                         <Border Background="#1C1C2E" Padding="10 5">
-                                            <TextBlock Text="Generated PostgreSQL DDL" FontSize="11" Foreground="#A9A9B9" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Lang.GeneratedDdlHeader}" FontSize="11" Foreground="#A9A9B9" FontWeight="SemiBold"/>
                                         </Border>
                                         <TextBox Grid.Row="1" Text="{Binding ObjectPreviewVM.ConvertedSql, Mode=OneWay}" Style="{StaticResource CodeTextBoxStyle}" IsReadOnly="True"/>
                                     </Grid>
@@ -510,7 +628,7 @@
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
                                         <Border Background="#1C1C2E" Padding="10 5">
-                                            <TextBlock Text="Original Oracle Source SQL" FontSize="11" Foreground="#A9A9B9" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Lang.OriginalCodeHeader}" FontSize="11" Foreground="#A9A9B9" FontWeight="SemiBold"/>
                                         </Border>
                                         <TextBox Grid.Row="1" Text="{Binding ObjectPreviewVM.SourceSql, Mode=OneWay}" Style="{StaticResource CodeTextBoxStyle}" IsReadOnly="True"/>
                                     </Grid>
@@ -527,11 +645,11 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <Border Background="#1C1C2E" Padding="10 5">
-                                            <TextBlock Text="Converted PostgreSQL DDL (Editable)" FontSize="11" Foreground="#A9A9B9" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Lang.ConvertedCodeHeader}" FontSize="11" Foreground="#A9A9B9" FontWeight="SemiBold"/>
                                         </Border>
                                         <TextBox Grid.Row="1" Text="{Binding ObjectPreviewVM.ConvertedSql, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource CodeTextBoxStyle}"/>
                                         <Border Grid.Row="2" Background="#1E1E2C" Padding="10 5" BorderBrush="#252538" BorderThickness="0 1 0 0">
-                                            <TextBlock Text="* You can manually adjust PostgreSQL syntax. Edits are saved and migrated." FontSize="10" Foreground="#8A8A9F" FontStyle="Italic"/>
+                                            <TextBlock Text="{Binding Lang.EditNote}" FontSize="10" Foreground="#8A8A9F" FontStyle="Italic"/>
                                         </Border>
                                     </Grid>
                                 </Border>
@@ -542,7 +660,7 @@
             </TabItem>
 
             <!-- Tab 3: Migration Logs & Console -->
-            <TabItem Header="Migration Execution">
+            <TabItem Header="{Binding Lang.Tab3Header}">
                 <Grid Margin="15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="320"/>
@@ -562,16 +680,16 @@
                             <StackPanel Grid.Row="0">
                                 <StackPanel Orientation="Horizontal" Margin="0 0 0 15">
                                     <iconPacks:PackIconMaterial Kind="Tune" Width="20" Height="20" Foreground="{DynamicResource MahApps.Brushes.Accent}" VerticalAlignment="Center" Margin="0 0 8 0"/>
-                                    <TextBlock Text="Migration Options" FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Lang.OptionsHeader}" FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                                 </StackPanel>
 
-                                <CheckBox IsChecked="{Binding ProgressVM.MigrateSchema}" Content="Migrate Table Structures / Views" Margin="0 8" VerticalContentAlignment="Center"/>
-                                <CheckBox IsChecked="{Binding ProgressVM.MigrateSequences}" Content="Migrate Database Sequences" Margin="0 8" VerticalContentAlignment="Center"/>
-                                <CheckBox IsChecked="{Binding ProgressVM.MigrateIndexes}" Content="Migrate Non-PK Indexes" Margin="0 8" VerticalContentAlignment="Center"/>
-                                <CheckBox IsChecked="{Binding ProgressVM.MigrateData}" Content="Migrate Table Data (Bulk Copy)" Margin="0 8" VerticalContentAlignment="Center"/>
-                                <CheckBox IsChecked="{Binding ProgressVM.TruncateBeforeCopy}" Content="Truncate Target Tables First" Margin="15 4" IsEnabled="{Binding ProgressVM.MigrateData}" VerticalContentAlignment="Center"/>
-                                <CheckBox IsChecked="{Binding ProgressVM.MigrateProcedures}" Content="Migrate Procedures, Functions &amp; Packages" Margin="0 8" VerticalContentAlignment="Center"/>
-                                <CheckBox IsChecked="{Binding ProgressVM.MigrateTriggers}" Content="Migrate Database Triggers" Margin="0 8" VerticalContentAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding ProgressVM.MigrateSchema}" Content="{Binding Lang.MigrateSchemaText}" Margin="0 8" VerticalContentAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding ProgressVM.MigrateSequences}" Content="{Binding Lang.MigrateSeqsText}" Margin="0 8" VerticalContentAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding ProgressVM.MigrateIndexes}" Content="{Binding Lang.MigrateIdxsText}" Margin="0 8" VerticalContentAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding ProgressVM.MigrateData}" Content="{Binding Lang.MigrateDataText}" Margin="0 8" VerticalContentAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding ProgressVM.TruncateBeforeCopy}" Content="{Binding Lang.TruncateText}" Margin="15 4" IsEnabled="{Binding ProgressVM.MigrateData}" VerticalContentAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding ProgressVM.MigrateProcedures}" Content="{Binding Lang.MigrateProcsText}" Margin="0 8" VerticalContentAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding ProgressVM.MigrateTriggers}" Content="{Binding Lang.MigrateTrigsText}" Margin="0 8" VerticalContentAlignment="Center"/>
                             </StackPanel>
 
                              <!-- List of objects being migrated -->
@@ -581,7 +699,7 @@
                                          <RowDefinition Height="Auto"/>
                                          <RowDefinition Height="*"/>
                                      </Grid.RowDefinitions>
-                                     <TextBlock Text="Objects Migration Status" FontSize="11" Foreground="#8F8F9F" FontWeight="SemiBold" Margin="0 0 0 8"/>
+                                     <TextBlock Text="{Binding Lang.StatusListHeader}" FontSize="11" Foreground="#8F8F9F" FontWeight="SemiBold" Margin="0 0 0 8"/>
                                      <ListBox Grid.Row="1" ItemsSource="{Binding ProgressVM.MigratingObjects}" Background="Transparent" BorderThickness="0">
                                          <ListBox.Resources>
                                              <Style x:Key="StatusStyle" TargetType="TextBlock">
@@ -691,10 +809,18 @@
 
                             <!-- Control Buttons -->
                             <StackPanel Grid.Row="2">
-                                <Button Command="{Binding StartMigrationCommand}" Content="Run Migration Pipeline" 
-                                        Style="{DynamicResource MahApps.Styles.Button.Flat}" Background="{DynamicResource MahApps.Brushes.Accent}" Foreground="White" Height="40" FontWeight="SemiBold" Margin="0 5"/>
-                                <Button Command="{Binding ProgressVM.CancelCommand}" Content="Cancel Operation" 
-                                        Style="{DynamicResource MahApps.Styles.Button.Flat}" Background="#FF3B30" Foreground="White" Height="30" Margin="0 5" />
+                                <Button Command="{Binding StartMigrationCommand}" Style="{StaticResource ModernAccentButton}" Height="40" Margin="0 5">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <iconPacks:PackIconMaterial Kind="PlayCircle" Width="18" Height="18" Margin="0 0 8 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Lang.RunPipelineBtn}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding ProgressVM.CancelCommand}" Style="{StaticResource ModernDangerButton}" Margin="0 5">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <iconPacks:PackIconMaterial Kind="StopCircle" Width="14" Height="14" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Lang.CancelBtn}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -715,7 +841,7 @@
                                  </Grid>
                                  <ProgressBar Height="15" Value="{Binding ProgressVM.Progress, Mode=OneWay}" Foreground="{DynamicResource MahApps.Brushes.Accent}" Background="#12121A" BorderBrush="#2E2E42" Margin="0 0 0 8"/>
                                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                      <TextBlock Text="Success: " FontSize="11" Foreground="#8F8F9F" VerticalAlignment="Center"/>
+                                      <TextBlock Text="{Binding Lang.SuccessText}" FontSize="11" Foreground="#8F8F9F" VerticalAlignment="Center"/>
                                       <TextBlock Text="{Binding ProgressVM.SuccessCount}" FontSize="12" Foreground="#7FDF4B" FontWeight="Bold" Margin="0 0 15 0" VerticalAlignment="Center"/>
                                       
                                       <!-- Clickable Failures Button -->
@@ -723,9 +849,9 @@
                                           <Button.Template>
                                               <ControlTemplate TargetType="Button">
                                                   <StackPanel Orientation="Horizontal">
-                                                      <TextBlock Text="Failed: " FontSize="11" Foreground="#8F8F9F" VerticalAlignment="Center"/>
-                                                      <TextBlock Text="{Binding ProgressVM.FailureCount}" FontSize="12" Foreground="#FF3B30" FontWeight="Bold" VerticalAlignment="Center"/>
-                                                      <TextBlock Text=" (View Details)" FontSize="10" Foreground="#5A8FDF" Margin="5 0 0 0" VerticalAlignment="Center" TextDecorations="Underline"/>
+                                                      <TextBlock Text="{Binding DataContext.Lang.FailedText, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="11" Foreground="#8F8F9F" VerticalAlignment="Center"/>
+                                                      <TextBlock Text="{Binding DataContext.ProgressVM.FailureCount, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="12" Foreground="#FF3B30" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                      <TextBlock Text="{Binding DataContext.Lang.ViewDetailsText, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="10" Foreground="#5A8FDF" Margin="5 0 0 0" VerticalAlignment="Center" TextDecorations="Underline"/>
                                                   </StackPanel>
                                                   <ControlTemplate.Triggers>
                                                       <Trigger Property="IsMouseOver" Value="True">
@@ -749,7 +875,7 @@
                                 <Border Background="#14141F" Padding="15 10" CornerRadius="8 8 0 0">
                                     <StackPanel Orientation="Horizontal">
                                         <iconPacks:PackIconMaterial Kind="Console" Width="16" Height="16" Foreground="#7FFF00" Margin="0 0 8 0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Migration Pipeline Logs" FontSize="12" FontWeight="SemiBold" Foreground="#A0A0C0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Lang.LogsHeader}" FontSize="12" FontWeight="SemiBold" Foreground="#A0A0C0" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Border>
                                 <TextBox Grid.Row="1" Text="{Binding ProgressVM.LogOutput, Mode=OneWay}" 
@@ -769,7 +895,7 @@
         <Grid Grid.RowSpan="2" Background="#A0000000" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                 <mah:ProgressRing Foreground="{DynamicResource MahApps.Brushes.Accent}" Width="60" Height="60"/>
-                <TextBlock Text="Reading database metadata from Oracle..." Margin="0 15 0 0" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding Lang.ReadingMetadataText}" Margin="0 15 0 0" FontSize="14" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/>
             </StackPanel>
         </Grid>
     </Grid>

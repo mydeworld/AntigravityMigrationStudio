@@ -4,12 +4,72 @@
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:models="clr-namespace:MigrationPgSqlApp.Models"
-        Title="Migration Failure Details" Height="500" Width="850"
+        Title="{Binding Lang.FailuresWinTitle}" Height="500" Width="850"
         WindowStartupLocation="CenterOwner"
         Background="#181824"
         GlowBrush="{DynamicResource MahApps.Brushes.Accent}"
         TitleCharacterCasing="Normal"
         WindowTransitionsEnabled="False">
+
+    <Window.Resources>
+        <Style x:Key="ModernCopyButton" TargetType="Button">
+            <Setter Property="Background" Value="#3B2A54"/>
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="BorderBrush" Value="#5A4278"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="14 0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#4C376A"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#78599E"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2C1E40"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernCloseButton" TargetType="Button">
+            <Setter Property="Background" Value="#4F46E5"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="16 0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#4338CA"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#3730A3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
     <Grid Margin="15">
         <Grid.RowDefinitions>
@@ -28,12 +88,12 @@
             
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <iconPacks:PackIconMaterial Kind="AlertCircleOutline" Width="20" Height="20" Foreground="#FF3B30" Margin="0 0 8 0" VerticalAlignment="Center"/>
-                <TextBlock Text="Failed Objects List" FontSize="16" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Lang.FailuresListHeader}" FontSize="16" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                 <TextBlock x:Name="CountText" Text=" (0 items)" FontSize="13" Foreground="#8F8F9F" VerticalAlignment="Center" Margin="5 0 0 0"/>
             </StackPanel>
 
             <TextBox x:Name="SearchBox" Grid.Column="1" 
-                     mah:TextBoxHelper.Watermark="Search object name or error..." 
+                     mah:TextBoxHelper.Watermark="{Binding Lang.SearchWatermark}" 
                      mah:TextBoxHelper.ClearTextButton="True"
                      TextChanged="SearchBox_TextChanged"
                      Background="#0F0F16" Foreground="White" BorderBrush="#2D2D3F" BorderThickness="1"/>
@@ -89,7 +149,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="Detailed Error Reason:" FontSize="11" Foreground="#8F8F9F" FontWeight="SemiBold" Margin="0 0 0 4"/>
+                <TextBlock Text="{Binding Lang.DetailedReasonHeader}" FontSize="11" Foreground="#8F8F9F" FontWeight="SemiBold" Margin="0 0 0 4"/>
                 <TextBox x:Name="DetailText" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True"
                          Background="Transparent" Foreground="#FF5B55" BorderThickness="0" TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12"/>
@@ -99,10 +159,18 @@
         <!-- Actions -->
         <Grid Grid.Row="3">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Copy Error Info" Click="CopyButton_Click" Width="120" Height="30" Margin="0 0 10 0"
-                        Style="{StaticResource MahApps.Styles.Button.Flat}" Background="#2A1B3D" Foreground="White"/>
-                <Button Content="Close" Click="CloseButton_Click" Width="80" Height="30"
-                        Style="{StaticResource MahApps.Styles.Button.Flat}" Background="#1F1F2F" Foreground="White"/>
+                <Button Click="CopyButton_Click" Style="{StaticResource ModernCopyButton}" Margin="0 0 10 0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <iconPacks:PackIconMaterial Kind="ContentCopy" Width="14" Height="14" Margin="0 0 6 0" VerticalAlignment="Center" Foreground="#C084FC"/>
+                        <TextBlock Text="{Binding Lang.CopyErrorBtn}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Click="CloseButton_Click" Style="{StaticResource ModernCloseButton}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <iconPacks:PackIconMaterial Kind="Close" Width="14" Height="14" Margin="0 0 6 0" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Lang.CloseBtn}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </Grid>
     </Grid>

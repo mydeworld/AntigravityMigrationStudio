@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using MahApps.Metro.Controls;
 using MigrationPgSqlApp.Models;
+using MigrationPgSqlApp.Services;
 
 namespace MigrationPgSqlApp
 {
@@ -16,11 +17,14 @@ namespace MigrationPgSqlApp
         public FailureDetailsWindow(List<DbObjectBase> failures)
         {
             InitializeComponent();
+            DataContext = this;
             _allFailures = failures ?? new List<DbObjectBase>();
             _filteredFailures = _allFailures;
 
             RefreshGrid();
         }
+
+        public LanguageManager Lang => LanguageManager.Instance;
 
         private void RefreshGrid()
         {

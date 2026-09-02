@@ -41,6 +41,7 @@ namespace MigrationPgSqlApp.ViewModels
         public SchemaTreeViewModel SchemaTreeVM { get; }
         public ObjectPreviewViewModel ObjectPreviewVM { get; }
         public MigrationProgressViewModel ProgressVM { get; }
+        public LanguageManager Lang => LanguageManager.Instance;
 
         private int _activeTabIndex = 0;
         public int ActiveTabIndex

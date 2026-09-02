@@ -83,6 +83,9 @@ namespace MigrationPgSqlApp.Services
             sql = Regex.Replace(sql, @"\bsysdate\s*\(\s*\)", "CURRENT_TIMESTAMP", RegexOptions.IgnoreCase);
             sql = Regex.Replace(sql, @"\bsysdate\b", "CURRENT_TIMESTAMP", RegexOptions.IgnoreCase);
 
+            // 1.0 Convert date subtraction expressions (e.g. TO_DATE(expr, fmt) - SYSDATE) to EXTRACT(EPOCH FROM (expr::timestamp - CURRENT_DATE)) / 86400
+            sql = ConvertDateSubtraction(sql);
+
             // 1.1 Replace SYS_GUID() with upper(replace(gen_random_uuid()::text, '-', ''))
             sql = Regex.Replace(sql, @"\bsys_guid\s*\(\s*\)", "upper(replace(gen_random_uuid()::text, '-', ''))", RegexOptions.IgnoreCase);
 
@@ -1452,6 +1455,84 @@ namespace MigrationPgSqlApp.Services
             }
 
             return false;
+        }
+
+        private string ConvertDateSubtraction(string sql)
+        {
+            if (string.IsNullOrEmpty(sql)) return string.Empty;
+
+            // 1. First, find any TO_NUMBER(...) wrapping date subtractions and strip TO_NUMBER
+            string toNumPattern = @"\bTO_NUMBER\s*\(";
+            int pos = 0;
+            while (pos < sql.Length)
+            {
+                var match = Regex.Match(sql.Substring(pos), toNumPattern, RegexOptions.IgnoreCase);
+                if (!match.Success) break;
+
+                int startIdx = pos + match.Index;
+                int openParenIdx = startIdx + match.Length - 1;
+                int closeParenIdx = FindClosingParenthesis(sql, openParenIdx);
+                if (closeParenIdx == -1)
+                {
+                    pos = openParenIdx + 1;
+                    continue;
+                }
+
+                string inner = sql.Substring(openParenIdx + 1, closeParenIdx - openParenIdx - 1);
+                if (Regex.IsMatch(inner, @"\b(?:TO_DATE|SYSDATE|CURRENT_TIMESTAMP|CURRENT_DATE)\b", RegexOptions.IgnoreCase))
+                {
+                    // Strip TO_NUMBER(...) wrapper
+                    sql = sql.Remove(startIdx, closeParenIdx - startIdx + 1).Insert(startIdx, inner);
+                    pos = startIdx; // Re-check from startIdx
+                }
+                else
+                {
+                    pos = closeParenIdx + 1;
+                }
+            }
+
+            // 2. Handle date subtraction multiplied by 24*60*60 (or 86400) -> EXTRACT(EPOCH FROM (date1 - date2))
+            string multPattern = @"(?:\(\s*)?(?:TO_DATE\s*\(\s*(?<e1>[a-zA-Z0-9_.]+)\s*,\s*'[^']+'\s*\)|(?<e1>CURRENT_TIMESTAMP|CURRENT_DATE|SYSDATE(?:\(\))?|""?\w+""?\.""?\w+""?|""?\w+""?))\s*-\s*(?:TO_DATE\s*\(\s*(?<e2>[a-zA-Z0-9_.]+)\s*,\s*'[^']+'\s*\)|(?<e2>CURRENT_TIMESTAMP|CURRENT_DATE|SYSDATE(?:\(\))?|""?\w+""?\.""?\w+""?|""?\w+""?))(?:\s*\))?\s*\*\s*(?:24\s*\*\s*60\s*\*\s*60|86400)";
+            sql = Regex.Replace(sql, multPattern, m => {
+                string e1 = FormatDateOperand(m.Groups["e1"].Value);
+                string e2 = FormatDateOperand(m.Groups["e2"].Value);
+                return $"EXTRACT(EPOCH FROM ({e1} - {e2}))";
+            }, RegexOptions.IgnoreCase);
+
+            // 3. Handle plain date subtraction (NOT multiplied by 86400, and NOT inside EXTRACT)
+            string plainPattern = @"(?:TO_DATE\s*\(\s*(?<e1>[a-zA-Z0-9_.]+)\s*,\s*'[^']+'\s*\)|(?<e1>CURRENT_TIMESTAMP|CURRENT_DATE|SYSDATE(?:\(\))?))\s*-\s*(?:TO_DATE\s*\(\s*(?<e2>[a-zA-Z0-9_.]+)\s*,\s*'[^']+'\s*\)|(?<e2>CURRENT_TIMESTAMP|CURRENT_DATE|SYSDATE(?:\(\))?))";
+            sql = Regex.Replace(sql, plainPattern, m => {
+                int idx = m.Index;
+                string leftText = sql.Substring(0, idx).ToUpper();
+                if (leftText.EndsWith("EXTRACT(EPOCH FROM (") || leftText.EndsWith("EXTRACT(EPOCH FROM ( "))
+                {
+                    return m.Value;
+                }
+
+                string e1 = FormatDateOperand(m.Groups["e1"].Value);
+                string e2 = FormatDateOperand(m.Groups["e2"].Value);
+                return $"EXTRACT(EPOCH FROM ({e1} - {e2})) / 86400";
+            }, RegexOptions.IgnoreCase);
+
+            return sql;
+        }
+
+        private string FormatDateOperand(string op)
+        {
+            if (string.IsNullOrWhiteSpace(op)) return "CURRENT_TIMESTAMP";
+            string trimmed = op.Trim();
+            if (trimmed.Equals("SYSDATE", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.Equals("SYSDATE()", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.Equals("CURRENT_DATE", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.Equals("CURRENT_TIMESTAMP", StringComparison.OrdinalIgnoreCase))
+            {
+                return "CURRENT_TIMESTAMP";
+            }
+            if (trimmed.EndsWith("::timestamp", StringComparison.OrdinalIgnoreCase))
+            {
+                return trimmed;
+            }
+            return $"{trimmed}::timestamp";
         }
     }
 }
